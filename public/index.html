@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة المنزل</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        
+        /* Dark Mode */
+        body.dark-mode {
+            background: #0a0a0a;
+            color: #ffffff;
+        }
+        
+        body.light-mode {
+            background: #f5f5f5;
+            color: #1a1a1a;
+        }
+        
+        /* Loading Spinner */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Glassmorphism Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar.scrolled {
+            background: rgba(10, 10, 10, 0.95);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: #a0a0a0;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        .nav-links a.active {
+            color: #ffffff;
+        }
+        
+        .nav-links a.active::after {
+            width: 100%;
+        }
+        
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .btn-logout {
+            padding: 0.5rem 1.5rem;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+        
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.5rem 0.8rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding-top: 80px;
+        }
+        
+        .section {
+            min-height: 100vh;
+            padding: 4rem 2rem;
+            scroll-margin-top: 80px;
+        }
+        
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Home Section */
+        #home {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .hero-image {
+            width: 100%;
+            max-width: 800px;
+            border-radius: 20px;
+            margin: 2rem 0;
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
+            transition: transform 0.5s ease;
+        }
+        
+        .hero-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .place-name {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+        
+        .place-description {
+            max-width: 700px;
+            color: #a0a0a0;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            width: 100%;
+            max-width: 900px;
+            margin: 2rem 0;
+        }
+        
+        .service-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .service-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateY(-5px);
+            border-color: #6366f1;
+        }
+        
+        .service-item .icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .service-item h3 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .service-item p {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+        }
+        
+        /* Menu Section */
+        #menu {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .product-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+            border-color: #6366f1;
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .product-info {
+            padding: 1.5rem;
+        }
+        
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .product-description {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #6366f1;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-add-cart {
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-add-cart:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+        
+        /* Cart */
+        .cart-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .cart-item-info {
+            flex: 1;
+        }
+        
+        .cart-item-name {
+            font-weight: 600;
+        }
+        
+        .cart-item-price {
+            color: #6366f1;
+        }
+        
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .btn-qty {
+            padding: 0.3rem 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-qty:hover {
+            background: #6366f1;
+        }
+        
+        .cart-total {
+            text-align: right;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            color: #6366f1;
+        }
+        
+        .btn-checkout {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-checkout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+        }
+        
+        /* Feedback Section */
+        #feedback {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .feedback-form {
+            max-width: 600px;
+            margin: 0 auto 3rem auto;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .btn-submit {
+            padding: 0.8rem 2rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+        
+        .feedback-list {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .feedback-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .feedback-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feedback-name {
+            font-weight: 600;
+        }
+        
+        .feedback-stars {
+            color: #f59e0b;
+        }
+        
+        .feedback-comment {
+            color: #a0a0a0;
+            line-height: 1.6;
+        }
+        
+        .average-rating {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        
+        .average-rating .number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #6366f1;
+        }
+        
+        .average-rating .stars {
+            color: #f59e0b;
+            font-size: 1.5rem;
+        }
+        
+        /* Internet Section */
+        #internet {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .internet-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .internet-info {
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+        
+        .internet-info .label {
+            color: #a0a0a0;
+        }
+        
+        .internet-info .value {
+            font-weight: 700;
+            color: #6366f1;
+        }
+        
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 9999;
+            animation: slideIn 0.5s ease;
+            max-width: 350px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .toast.success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+        
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        .toast.info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 4rem;
+        }
+        
+        .footer p {
+            color: #a0a0a0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.8rem 1rem;
+                flex-wrap: wrap;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .nav-links a {
+                font-size: 0.85rem;
+            }
+            
+            .section {
+                padding: 2rem 1rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .place-name {
+                font-size: 2.5rem;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cart-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+            
+            .cart-item-actions {
+                justify-content: space-between;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                gap: 0.8rem;
+            }
+            
+            .nav-links a {
+                font-size: 0.75rem;
+            }
+        }
+        
+        /* Light mode overrides */
+        body.light-mode .navbar {
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        body.light-mode .nav-links a {
+            color: #4a4a4a;
+        }
+        
+        body.light-mode .nav-links a:hover,
+        body.light-mode .nav-links a.active {
+            color: #1a1a1a;
+        }
+        
+        body.light-mode .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        body.light-mode .place-description,
+        body.light-mode .product-description,
+        body.light-mode .feedback-comment {
+            color: #666;
+        }
+        
+        body.light-mode .service-item,
+        body.light-mode .product-card,
+        body.light-mode .feedback-item {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        body.light-mode .cart-container {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        body.light-mode .form-group input,
+        body.light-mode .form-group textarea,
+        body.light-mode .form-group select {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #1a1a1a;
+        }
+        
+        body.light-mode .internet-info {
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div class="loader" id="loader">
+        <div class="spinner"></div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+    
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-brand">🏠 House System</div>
+        <ul class="nav-links">
+            <li><a href="#home" class="active">الرئيسية</a></li>
+            <li><a href="#menu">المينيو</a></li>
+            <li><a href="#feedback">التقييمات</a></li>
+            <li><a href="#internet">الإنترنت</a></li>
+        </ul>
+        <div class="nav-actions">
+            <button class="theme-toggle" id="themeToggle">🌙</button>
+            <button class="btn-logout" id="logoutBtn">تسجيل الخروج</button>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Home Section -->
+        <section id="home" class="section">
+            <h1 class="place-name">بيت الضيافة</h1>
+            <p class="place-description">
+                مرحباً بكم في بيت الضيافة، وجهتكم المثالية للاسترخاء والراحة. نقدم لكم تجربة فريدة مع خدمات مميزة وأجواء هادئة.
+            </p>
+            <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800" alt="Place" class="hero-image">
+            <div class="services-grid">
+                <div class="service-item">
+                    <div class="icon">🍽️</div>
+                    <h3>مطعم</h3>
+                    <p>أشهى المأكولات</p>
+                </div>
+                <div class="service-item">
+                    <div class="icon">🌐</div>
+                    <h3>إنترنت</h3>
+                    <p>اتصال سريع ومستقر</p>
+                </div>
+                <div class="service-item">
+                    <div class="icon">🛏️</div>
+                    <h3>غرف فاخرة</h3>
+                    <p>إطلالات خلابة</p>
+                </div>
+                <div class="service-item">
+                    <div class="icon">🎯</div>
+                    <h3>أنشطة</h3>
+                    <p>ترفيه للجميع</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Menu Section -->
+        <section id="menu" class="section">
+            <h2 class="section-title">المينيو</h2>
+            <div class="menu-grid" id="menuGrid"></div>
+            
+            <!-- Cart -->
+            <div class="cart-container" id="cartContainer">
+                <h3 style="margin-bottom: 1rem;">🛒 سلة المشتريات</h3>
+                <div id="cartItems"></div>
+                <div class="cart-total" id="cartTotal">الإجمالي: 0.00 جنيه</div>
+                <button class="btn-checkout" id="checkoutBtn">متابعة الدفع</button>
+            </div>
+        </section>
+        
+        <!-- Feedback Section -->
+        <section id="feedback" class="section">
+            <h2 class="section-title">التقييمات</h2>
+            
+            <div class="average-rating" id="averageRating">
+                <div class="number">0.0</div>
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <div style="color: #a0a0a0;">0 تقييم</div>
+            </div>
+            
+            <div class="feedback-form">
+                <h3 style="margin-bottom: 1rem;">أضف تقييمك</h3>
+                <div class="form-group">
+                    <label>الاسم</label>
+                    <input type="text" id="feedbackName" placeholder="أدخل اسمك">
+                </div>
+                <div class="form-group">
+                    <label>التقييم</label>
+                    <select id="feedbackRating">
+                        <option value="5">⭐⭐⭐⭐⭐</option>
+                        <option value="4">⭐⭐⭐⭐</option>
+                        <option value="3">⭐⭐⭐</option>
+                        <option value="2">⭐⭐</option>
+                        <option value="1">⭐</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>التعليق</label>
+                    <textarea id="feedbackComment" placeholder="شاركنا تجربتك..."></textarea>
+                </div>
+                <button class="btn-submit" id="submitFeedback">إرسال التقييم</button>
+            </div>
+            
+            <div class="feedback-list" id="feedbackList"></div>
+        </section>
+        
+        <!-- Internet Section -->
+        <section id="internet" class="section">
+            <h2 class="section-title">خدمة الإنترنت</h2>
+            <div class="internet-container">
+                <div class="internet-info">
+                    <p><span class="label">📶 الشبكة:</span> <span class="value" id="wifiSSID">جاري التحميل...</span></p>
+                    <p><span class="label">🔒 الأمان:</span> <span class="value" id="wifiSecurity">جاري التحميل...</span></p>
+                    <p><span class="label">💰 السعر:</span> <span class="value">20 جنيه</span></p>
+                    <p><span class="label">⏱️ المدة:</span> <span class="value">20 دقيقة</span></p>
+                </div>
+                
+                <div class="form-group">
+                    <label>📱 رقم الهاتف</label>
+                    <input type="tel" id="phoneNumber" placeholder="أدخل رقم الهاتف">
+                </div>
+                <div class="form-group">
+                    <label>🔑 كود الإنترنت</label>
+                    <input type="text" id="internetCode" placeholder="أدخل الكود (16 رقم)" maxlength="16" inputmode="numeric">
+                </div>
+                <button class="btn-submit" id="activateInternet" style="width: 100%;">تفعيل الإنترنت</button>
+            </div>
+        </section>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2024 بيت الضيافة. جميع الحقوق محفوظة.</p>
+    </footer>
+    
+    <script>
+        // ============================================================
+        // GLOBALS
+        // ============================================================
+        let cart = [];
+        let currentUser = null;
+        let isDarkMode = true;
+        
+        // API Base URL (adjust if needed)
+        const API_URL = 'https://myhome.vercel.app';
+        
+        // ============================================================
+        // DOM ELEMENTS
+        // ============================================================
+        const loader = document.getElementById('loader');
+        const toastContainer = document.getElementById('toastContainer');
+        const menuGrid = document.getElementById('menuGrid');
+        const cartItems = document.getElementById('cartItems');
+        const cartTotal = document.getElementById('cartTotal');
+        const feedbackList = document.getElementById('feedbackList');
+        const averageRatingEl = document.getElementById('averageRating');
+        
+        // ============================================================
+        // UTILITY FUNCTIONS
+        // ============================================================
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                toast.style.transition = 'all 0.5s ease';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+        
+        function formatCurrency(amount) {
+            return amount.toFixed(2) + ' جنيه';
+        }
+        
+        function getToken() {
+            return localStorage.getItem('houseToken');
+        }
+        
+        function isAuthenticated() {
+            return !!getToken();
+        }
+        
+        function getAuthHeaders() {
+            const token = getToken();
+            return token ? { 'Authorization': `Bearer ${token}` } : {};
+        }
+        
+        // ============================================================
+        // API CALLS
+        // ============================================================
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders(),
+                    ...options.headers
+                };
+                
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    ...options,
+                    headers
+                });
+                
+                if (response.status === 401 || response.status === 403) {
+                    // Token expired or invalid
+                    if (window.location.pathname !== '/login.html') {
+                        localStorage.removeItem('houseToken');
+                        window.location.href = '/login.html';
+                    }
+                    throw new Error('Session expired');
+                }
+                
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Request failed');
+                }
+                return data;
+            } catch (error) {
+                showToast(error.message, 'error');
+                throw error;
+            }
+        }
+        
+        // ============================================================
+        // AUTH
+        // ============================================================
+        function logout() {
+            localStorage.removeItem('houseToken');
+            window.location.href = '/login';
+        }
+        
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        
+        // Check auth on load
+        if (!isAuthenticated()) {
+            window.location.href = '/login';
+        }
+        
+        // ============================================================
+        // THEME TOGGLE
+        // ============================================================
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            isDarkMode = !isDarkMode;
+            document.body.className = isDarkMode ? 'dark-mode' : 'light-mode';
+            this.textContent = isDarkMode ? '🌙' : '☀️';
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        });
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            isDarkMode = false;
+            document.body.className = 'light-mode';
+            document.getElementById('themeToggle').textContent = '☀️';
+        }
+        
+        // ============================================================
+        // NAVBAR SCROLL EFFECT
+        // ============================================================
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+        
+        // ============================================================
+        // NAVBAR ACTIVE LINK
+        // ============================================================
+        const sections = document.querySelectorAll('.section');
+        const navLinks = document.querySelectorAll('.nav-links a');
+        
+        window.addEventListener('scroll', function() {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (window.scrollY >= sectionTop - 150) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+        
+        // ============================================================
+        // LOAD PRODUCTS
+        // ============================================================
+        async function loadProducts() {
+            try {
+                const products = await apiCall('/api/products');
+                renderProducts(products);
+            } catch (error) {
+                showToast('Error loading products', 'error');
+            }
+        }
+        
+        function renderProducts(products) {
+            menuGrid.innerHTML = '';
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <img src="${product.imageUrl || 'https://via.placeholder.com/300x200'}" alt="${product.name}" class="product-image">
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-description">${product.description}</div>
+                        <div class="product-price">${formatCurrency(product.price)}</div>
+                        <button class="btn-add-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">
+                            🛒 إضافة إلى السلة
+                        </button>
+                    </div>
+                `;
+                menuGrid.appendChild(card);
+            });
+            
+            // Add to cart event listeners
+            document.querySelectorAll('.btn-add-cart').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    const price = parseFloat(this.dataset.price);
+                    addToCart(id, name, price);
+                });
+            });
+        }
+        
+        // ============================================================
+        // CART FUNCTIONS
+        // ============================================================
+        function addToCart(id, name, price) {
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({ id, name, price, quantity: 1 });
+            }
+            renderCart();
+            showToast(`${name} تمت إضافته إلى السلة`, 'success');
+        }
+        
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            renderCart();
+        }
+        
+        function updateQuantity(id, delta) {
+            const item = cart.find(item => item.id === id);
+            if (item) {
+                item.quantity += delta;
+                if (item.quantity <= 0) {
+                    removeFromCart(id);
+                } else {
+                    renderCart();
+                }
+            }
+        }
+        
+        function renderCart() {
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p style="color: #a0a0a0;">السلة فارغة</p>';
+                cartTotal.textContent = 'الإجمالي: 0.00 جنيه';
+                return;
+            }
+            
+            let html = '';
+            let total = 0;
+            cart.forEach(item => {
+                const subtotal = item.price * item.quantity;
+                total += subtotal;
+                html += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">${formatCurrency(item.price)}</div>
+                        </div>
+                        <div class="cart-item-actions">
+                            <button class="btn-qty" onclick="updateQuantity('${item.id}', -1)">-</button>
+                            <span>${item.quantity}</span>
+                            <button class="btn-qty" onclick="updateQuantity('${item.id}', 1)">+</button>
+                            <button class="btn-qty" onclick="removeFromCart('${item.id}')" style="color: #ef4444;">✕</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartItems.innerHTML = html;
+            cartTotal.textContent = `الإجمالي: ${formatCurrency(total)}`;
+        }
+        
+        // ============================================================
+        // CHECKOUT
+        // ============================================================
+        document.getElementById('checkoutBtn').addEventListener('click', function() {
+            if (cart.length === 0) {
+                showToast('السلة فارغة!', 'error');
+                return;
+            }
+            
+            // Store cart in sessionStorage for payment page
+            sessionStorage.setItem('checkoutCart', JSON.stringify(cart));
+            window.location.href = '/pay.html';
+        });
+        
+        // ============================================================
+        // LOAD FEEDBACK
+        // ============================================================
+        async function loadFeedback() {
+            try {
+                const data = await apiCall('/api/feedback');
+                renderFeedback(data.feedbacks, data.averageRating, data.totalReviews);
+            } catch (error) {
+                showToast('Error loading feedback', 'error');
+            }
+        }
+        
+        function renderFeedback(feedbacks, avgRating, totalReviews) {
+            // Update average rating
+            averageRatingEl.innerHTML = `
+                <div class="number">${avgRating.toFixed(1)}</div>
+                <div class="stars">${'⭐'.repeat(Math.round(avgRating))}</div>
+                <div style="color: #a0a0a0;">${totalReviews} تقييم</div>
+            `;
+            
+            // Render feedback list
+            feedbackList.innerHTML = '';
+            feedbacks.forEach(f => {
+                const item = document.createElement('div');
+                item.className = 'feedback-item';
+                item.innerHTML = `
+                    <div class="feedback-header">
+                        <span class="feedback-name">${f.name}</span>
+                        <span class="feedback-stars">${'⭐'.repeat(Math.round(f.rating || 0))}</span>
+                    </div>
+                    <div class="feedback-comment">${f.comment}</div>
+                `;
+                feedbackList.appendChild(item);
+            });
+        }
+        
+        // ============================================================
+        // SUBMIT FEEDBACK
+        // ============================================================
+        document.getElementById('submitFeedback').addEventListener('click', async function() {
+            const name = document.getElementById('feedbackName').value.trim();
+            const rating = document.getElementById('feedbackRating').value;
+            const comment = document.getElementById('feedbackComment').value.trim();
+            
+            if (!name || !comment) {
+                showToast('الرجاء ملء جميع الحقول', 'error');
+                return;
+            }
+            
+            try {
+                await apiCall('/api/feedback', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, rating: parseInt(rating), comment })
+                });
+                
+                showToast('تم إرسال التقييم بنجاح!', 'success');
+                document.getElementById('feedbackName').value = '';
+                document.getElementById('feedbackComment').value = '';
+                loadFeedback();
+            } catch (error) {
+                showToast('Error submitting feedback', 'error');
+            }
+        });
+        
+        // ============================================================
+        // LOAD WIFI INFO
+        // ============================================================
+        async function loadWifiInfo() {
+            try {
+                const response = await fetch('/api/wifi-info');
+                const data = await response.json();
+                document.getElementById('wifiSSID').textContent = data.ssid || 'غير متاح';
+                document.getElementById('wifiSecurity').textContent = data.security || 'غير متاح';
+            } catch (error) {
+                document.getElementById('wifiSSID').textContent = 'غير متاح';
+                document.getElementById('wifiSecurity').textContent = 'غير متاح';
+            }
+        }
+        
+        // ============================================================
+        // ACTIVATE INTERNET
+        // ============================================================
+        document.getElementById('activateInternet').addEventListener('click', async function() {
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const code = document.getElementById('internetCode').value.trim();
+            
+            if (!phoneNumber || !code) {
+                showToast('الرجاء إدخال رقم الهاتف والكود', 'error');
+                return;
+            }
+            
+            if (code.length !== 16 || !/^\d+$/.test(code)) {
+                showToast('الكود يجب أن يكون 16 رقمًا', 'error');
+                return;
+            }
+            
+            try {
+                const result = await apiCall('/api/wifi-sessions', {
+                    method: 'POST',
+                    body: JSON.stringify({ phoneNumber, code })
+                });
+                
+                if (result.success) {
+                    showToast('✅ تم تفعيل الإنترنت بنجاح!', 'success');
+                    document.getElementById('internetCode').value = '';
+                    document.getElementById('phoneNumber').value = '';
+                    
+                    // Show WiFi credentials
+                    showToast(`📶 الشبكة: ${result.wifiSSID}\n🔑 كلمة المرور: ${result.wifiPassword}`, 'info');
+                }
+            } catch (error) {
+                showToast('❌ كود غير صالح أو مستخدم', 'error');
+            }
+        });
+        
+        // ============================================================
+        // INITIALIZE
+        // ============================================================
+        async function init() {
+            // Show loader
+            loader.classList.remove('hidden');
+            
+            try {
+                await Promise.all([
+                    loadProducts(),
+                    loadFeedback(),
+                    loadWifiInfo()
+                ]);
+            } catch (error) {
+                console.error('Init error:', error);
+            }
+            
+            // Hide loader
+            setTimeout(() => {
+                loader.classList.add('hidden');
+            }, 500);
+            
+            // Render initial cart
+            renderCart();
+        }
+        
+        // Start the app
+        init();
+    </script>
+</body>
+</html>

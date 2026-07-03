@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الدفع - نظام إدارة المنزل</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .payment-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .payment-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        
+        .payment-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .payment-header p {
+            color: #a0a0a0;
+            margin-top: 0.5rem;
+        }
+        
+        .order-summary {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .order-item .name {
+            font-weight: 600;
+        }
+        
+        .order-item .price {
+            color: #6366f1;
+        }
+        
+        .order-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            margin-top: 1rem;
+        }
+        
+        .order-total .amount {
+            color: #22c55e;
+        }
+        
+        .bank-details {
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .bank-details h3 {
+            margin-bottom: 1rem;
+            color: #6366f1;
+        }
+        
+        .bank-details p {
+            color: #a0a0a0;
+            margin: 0.5rem 0;
+        }
+        
+        .bank-details .highlight {
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 1.5rem 0;
+        }
+        
+        .upload-area:hover {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.05);
+        }
+        
+        .upload-area.dragover {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+        }
+        
+        .upload-area .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-area p {
+            color: #a0a0a0;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .file-info {
+            display: none;
+            margin: 1rem 0;
+            padding: 0.8rem;
+            background: rgba(34, 197, 94, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .file-info.visible {
+            display: block;
+        }
+        
+        .btn-pay {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-pay:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
+        }
+        
+        .btn-pay:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-back {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back:hover {
+            color: #8b5cf6;
+        }
+        
+        .loader {
+            display: none;
+            margin: 0 auto;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .loader.visible {
+            display: inline-block;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            z-index: 9999;
+            animation: slideIn 0.5s ease;
+            max-width: 350px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .toast.success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+        
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        .toast.info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .payment-container {
+                padding: 1.5rem;
+            }
+            
+            .payment-header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <div class="payment-header">
+            <h1>💳 الدفع</h1>
+            <p>راجع طلبك وأكمل عملية الدفع</p>
+        </div>
+        
+        <div class="order-summary" id="orderSummary">
+            <h3 style="margin-bottom: 1rem;">🛒 ملخص الطلب</h3>
+            <div id="orderItems"></div>
+            <div class="order-total">
+                <span>الإجمالي</span>
+                <span class="amount" id="totalAmount">0.00 جنيه</span>
+            </div>
+        </div>
+        
+        <div class="bank-details">
+            <h3>🏦 معلومات التحويل</h3>
+            <p>رقم الحساب البنكي: <span class="highlight">1234-5678-9012-3456</span></p>
+            <p>اسم البنك: <span class="highlight">البنك الأهلي</span></p>
+            <p>رقم المحفظة: <span class="highlight">01234567890</span></p>
+            <p style="font-size: 0.9rem; color: #666;">يرجى تحويل المبلغ المطلوب إلى الحساب أعلاه</p>
+        </div>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="icon">📤</div>
+            <p><strong>اضغط للرفع</strong> أو اسحب الصورة هنا</p>
+            <p style="font-size: 0.9rem; color: #666;">قم برفع صورة سكرين شوت التحويل</p>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+        
+        <div class="file-info" id="fileInfo">
+            ✅ تم اختيار الملف: <span id="fileName"></span>
+        </div>
+        
+        <button class="btn-pay" id="submitPayment">
+            <span id="btnText">تأكيد الدفع</span>
+            <span class="loader" id="btnLoader"></span>
+        </button>
+        
+        <a href="/" class="btn-back">← العودة إلى الرئيسية</a>
+    </div>
+    
+    <div id="toastContainer"></div>
+    
+    <script>
+        // ============================================================
+        // GLOBALS
+        // ============================================================
+        const API_URL = 'https://myhome.vercel.app';
+        let cart = [];
+        let selectedFile = null;
+        let hasInternet = false;
+        const INTERNET_PRICE = 20;
+        
+        // ============================================================
+        // DOM ELEMENTS
+        // ============================================================
+        const orderItems = document.getElementById('orderItems');
+        const totalAmount = document.getElementById('totalAmount');
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const submitBtn = document.getElementById('submitPayment');
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+        const toastContainer = document.getElementById('toastContainer');
+        
+        // ============================================================
+        // UTILITY FUNCTIONS
+        // ============================================================
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                toast.style.transition = 'all 0.5s ease';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+        
+        function formatCurrency(amount) {
+            return amount.toFixed(2) + ' جنيه';
+        }
+        
+        function getToken() {
+            return localStorage.getItem('houseToken');
+        }
+        
+        function getAuthHeaders() {
+            const token = getToken();
+            return token ? { 'Authorization': `Bearer ${token}` } : {};
+        }
+        
+        // ============================================================
+        // LOAD CART
+        // ============================================================
+        function loadCart() {
+            const stored = sessionStorage.getItem('checkoutCart');
+            if (stored) {
+                cart = JSON.parse(stored);
+            }
+            
+            // Check if internet was purchased
+            hasInternet = sessionStorage.getItem('hasInternet') === 'true';
+            
+            renderOrder();
+        }
+        
+        function renderOrder() {
+            if (cart.length === 0) {
+                orderItems.innerHTML = '<p style="color: #a0a0a0;">السلة فارغة</p>';
+                totalAmount.textContent = '0.00 جنيه';
+                return;
+            }
+            
+            let html = '';
+            let subtotal = 0;
+            cart.forEach(item => {
+                const total = item.price * item.quantity;
+                subtotal += total;
+                html += `
+                    <div class="order-item">
+                        <span class="name">${item.name} x${item.quantity}</span>
+                        <span class="price">${formatCurrency(total)}</span>
+                    </div>
+                `;
+            });
+            
+            let total = subtotal;
+            
+            // Add internet if purchased
+            if (hasInternet) {
+                html += `
+                    <div class="order-item">
+                        <span class="name">🌐 الإنترنت</span>
+                        <span class="price">${formatCurrency(INTERNET_PRICE)}</span>
+                    </div>
+                `;
+                total += INTERNET_PRICE;
+            }
+            
+            orderItems.innerHTML = html;
+            totalAmount.textContent = formatCurrency(total);
+        }
+        
+        // ============================================================
+        // FILE UPLOAD
+        // ============================================================
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showToast('الرجاء رفع صورة فقط', 'error');
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('حجم الصورة يجب أن يكون أقل من 5 ميجابايت', 'error');
+                return;
+            }
+            
+            selectedFile = file;
+            fileName.textContent = file.name;
+            fileInfo.classList.add('visible');
+            showToast('تم اختيار الصورة', 'success');
+        }
+        
+        // ============================================================
+        // SUBMIT PAYMENT
+        // ============================================================
+        submitBtn.addEventListener('click', async function() {
+            if (cart.length === 0) {
+                showToast('السلة فارغة!', 'error');
+                return;
+            }
+            
+            if (!selectedFile) {
+                showToast('الرجاء رفع صورة التحويل', 'error');
+                return;
+            }
+            
+            // Calculate total
+            let subtotal = 0;
+            cart.forEach(item => {
+                subtotal += item.price * item.quantity;
+            });
+            let total = subtotal;
+            if (hasInternet) {
+                total += INTERNET_PRICE;
+            }
+            
+            // Create order first
+            const orderData = {
+                items: cart,
+                total: total,
+                hasInternet: hasInternet,
+                customerName: 'عميل',
+                phoneNumber: ''
+            };
+            
+            try {
+                // Show loading
+                btnText.textContent = 'جاري المعالجة...';
+                btnLoader.classList.add('visible');
+                submitBtn.disabled = true;
+                
+                // Create order
+                const orderResponse = await fetch(`${API_URL}/api/orders`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                
+                if (!orderResponse.ok) {
+                    const errorData = await orderResponse.json();
+                    throw new Error(errorData.error || 'Failed to create order');
+                }
+                
+                const orderResult = await orderResponse.json();
+                const orderId = orderResult.id;
+                
+                // Upload payment with screenshot
+                const formData = new FormData();
+                formData.append('orderId', orderId);
+                formData.append('total', total);
+                formData.append('items', JSON.stringify(cart));
+                formData.append('hasInternet', hasInternet ? 'true' : 'false');
+                formData.append('screenshot', selectedFile);
+                
+                const paymentResponse = await fetch(`${API_URL}/api/payments`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: formData
+                });
+                
+                if (!paymentResponse.ok) {
+                    const errorData = await paymentResponse.json();
+                    throw new Error(errorData.error || 'Failed to submit payment');
+                }
+                
+                showToast('✅ تم إرسال الطلب بنجاح! سيتم مراجعته قريباً.', 'success');
+                
+                // Clear cart
+                sessionStorage.removeItem('checkoutCart');
+                sessionStorage.removeItem('hasInternet');
+                
+                // Reset form
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
+                
+            } catch (error) {
+                showToast(error.message, 'error');
+                btnText.textContent = 'تأكيد الدفع';
+                btnLoader.classList.remove('visible');
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // ============================================================
+        // CHECK AUTH
+        // ============================================================
+        // We don't require auth for payment page, but we keep it optional
+        // In case user wants to submit payment without login
+        
+        // ============================================================
+        // INITIALIZE
+        // ============================================================
+        loadCart();
+    </script>
+</body>
+</html>

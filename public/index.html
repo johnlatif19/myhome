@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة المنزل</title>
+    <title>بيت الضيافة</title>
     <style>
         /* Reset and Base Styles */
         * {
@@ -19,7 +19,6 @@
             transition: background 0.3s ease, color 0.3s ease;
         }
         
-        /* Dark Mode */
         body.dark-mode {
             background: #0a0a0a;
             color: #ffffff;
@@ -30,7 +29,6 @@
             color: #1a1a1a;
         }
         
-        /* Loading Spinner */
         .loader {
             position: fixed;
             top: 0;
@@ -64,7 +62,6 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Glassmorphism Navbar */
         .navbar {
             position: fixed;
             top: 0;
@@ -107,56 +104,21 @@
             text-decoration: none;
             font-size: 0.95rem;
             transition: color 0.3s ease;
-            position: relative;
-        }
-        
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            transition: width 0.3s ease;
+            cursor: pointer;
         }
         
         .nav-links a:hover {
             color: #ffffff;
         }
         
-        .nav-links a:hover::after {
-            width: 100%;
-        }
-        
         .nav-links a.active {
             color: #ffffff;
-        }
-        
-        .nav-links a.active::after {
-            width: 100%;
         }
         
         .nav-actions {
             display: flex;
             align-items: center;
             gap: 1rem;
-        }
-        
-        .btn-logout {
-            padding: 0.5rem 1.5rem;
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .btn-logout:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
         }
         
         .theme-toggle {
@@ -182,21 +144,11 @@
             min-height: 100vh;
             padding: 4rem 2rem;
             scroll-margin-top: 80px;
+            display: none;
         }
         
-        /* Glassmorphism Cards */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 2rem;
-            transition: all 0.3s ease;
-        }
-        
-        .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+        .section.active {
+            display: block;
         }
         
         .section-title {
@@ -207,6 +159,7 @@
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-align: center;
         }
         
         /* Home Section */
@@ -216,6 +169,10 @@
             align-items: center;
             justify-content: center;
             text-align: center;
+        }
+        
+        #home.active {
+            display: flex;
         }
         
         .hero-image {
@@ -282,10 +239,6 @@
         }
         
         /* Menu Section */
-        #menu {
-            background: rgba(255, 255, 255, 0.02);
-        }
-        
         .menu-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -354,7 +307,6 @@
             box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
         }
         
-        /* Cart */
         .cart-container {
             max-width: 800px;
             margin: 2rem auto;
@@ -431,10 +383,6 @@
         }
         
         /* Feedback Section */
-        #feedback {
-            background: rgba(255, 255, 255, 0.02);
-        }
-        
         .feedback-form {
             max-width: 600px;
             margin: 0 auto 3rem auto;
@@ -550,10 +498,6 @@
         }
         
         /* Internet Section */
-        #internet {
-            background: rgba(255, 255, 255, 0.02);
-        }
-        
         .internet-container {
             max-width: 600px;
             margin: 0 auto;
@@ -576,7 +520,6 @@
             color: #6366f1;
         }
         
-        /* Toast Notifications */
         .toast {
             position: fixed;
             top: 80px;
@@ -614,7 +557,6 @@
             }
         }
         
-        /* Footer */
         .footer {
             text-align: center;
             padding: 2rem;
@@ -626,7 +568,6 @@
             color: #a0a0a0;
         }
         
-        /* Responsive */
         @media (max-width: 768px) {
             .navbar {
                 padding: 0.8rem 1rem;
@@ -688,7 +629,6 @@
             }
         }
         
-        /* Light mode overrides */
         body.light-mode .navbar {
             background: rgba(255, 255, 255, 0.9);
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -701,11 +641,6 @@
         body.light-mode .nav-links a:hover,
         body.light-mode .nav-links a.active {
             color: #1a1a1a;
-        }
-        
-        body.light-mode .glass-card {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(0, 0, 0, 0.05);
         }
         
         body.light-mode .place-description,
@@ -751,23 +686,22 @@
     
     <!-- Navbar -->
     <nav class="navbar" id="navbar">
-        <div class="nav-brand">🏠 House System</div>
+        <div class="nav-brand" onclick="showSection('home')">🏠 بيت الضيافة</div>
         <ul class="nav-links">
-            <li><a href="#home" class="active">الرئيسية</a></li>
-            <li><a href="#menu">المينيو</a></li>
-            <li><a href="#feedback">التقييمات</a></li>
-            <li><a href="#internet">الإنترنت</a></li>
+            <li><a class="active" onclick="showSection('home')">الرئيسية</a></li>
+            <li><a onclick="showSection('menu')">المينيو</a></li>
+            <li><a onclick="showSection('feedback')">التقييمات</a></li>
+            <li><a onclick="showSection('internet')">الإنترنت</a></li>
         </ul>
         <div class="nav-actions">
             <button class="theme-toggle" id="themeToggle">🌙</button>
-            <button class="btn-logout" id="logoutBtn">تسجيل الخروج</button>
         </div>
     </nav>
     
     <!-- Main Content -->
     <div class="main-content">
         <!-- Home Section -->
-        <section id="home" class="section">
+        <section id="home" class="section active">
             <h1 class="place-name">بيت الضيافة</h1>
             <p class="place-description">
                 مرحباً بكم في بيت الضيافة، وجهتكم المثالية للاسترخاء والراحة. نقدم لكم تجربة فريدة مع خدمات مميزة وأجواء هادئة.
@@ -881,10 +815,7 @@
         // GLOBALS
         // ============================================================
         let cart = [];
-        let currentUser = null;
         let isDarkMode = true;
-        
-        // API Base URL (adjust if needed)
         const API_URL = 'https://my--home.vercel.app';
         
         // ============================================================
@@ -897,6 +828,35 @@
         const cartTotal = document.getElementById('cartTotal');
         const feedbackList = document.getElementById('feedbackList');
         const averageRatingEl = document.getElementById('averageRating');
+        
+        // ============================================================
+        // NAVIGATION - Show/Hide Sections
+        // ============================================================
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => {
+                s.classList.remove('active');
+            });
+            
+            // Show selected section
+            const target = document.getElementById(sectionId);
+            if (target) {
+                target.classList.add('active');
+            }
+            
+            // Update nav links
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Find and activate the clicked link
+            const links = document.querySelectorAll('.nav-links a');
+            const sectionNames = ['home', 'menu', 'feedback', 'internet'];
+            const index = sectionNames.indexOf(sectionId);
+            if (index !== -1 && links[index]) {
+                links[index].classList.add('active');
+            }
+        }
         
         // ============================================================
         // UTILITY FUNCTIONS
@@ -919,43 +879,15 @@
             return amount.toFixed(2) + ' جنيه';
         }
         
-        function getToken() {
-            return localStorage.getItem('houseToken');
-        }
-        
-        function isAuthenticated() {
-            return !!getToken();
-        }
-        
-        function getAuthHeaders() {
-            const token = getToken();
-            return token ? { 'Authorization': `Bearer ${token}` } : {};
-        }
-        
-        // ============================================================
-        // API CALLS
-        // ============================================================
         async function apiCall(endpoint, options = {}) {
             try {
-                const headers = {
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders(),
-                    ...options.headers
-                };
-                
                 const response = await fetch(`${API_URL}${endpoint}`, {
                     ...options,
-                    headers
-                });
-                
-                if (response.status === 401 || response.status === 403) {
-                    // Token expired or invalid
-                    if (window.location.pathname !== '/login.html') {
-                        localStorage.removeItem('houseToken');
-                        window.location.href = '/login.html';
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
                     }
-                    throw new Error('Session expired');
-                }
+                });
                 
                 const data = await response.json();
                 if (!response.ok) {
@@ -969,21 +901,6 @@
         }
         
         // ============================================================
-        // AUTH
-        // ============================================================
-        function logout() {
-            localStorage.removeItem('houseToken');
-            window.location.href = '/login';
-        }
-        
-        document.getElementById('logoutBtn').addEventListener('click', logout);
-        
-        // Check auth on load
-        if (!isAuthenticated()) {
-            window.location.href = '/login';
-        }
-        
-        // ============================================================
         // THEME TOGGLE
         // ============================================================
         document.getElementById('themeToggle').addEventListener('click', function() {
@@ -993,48 +910,12 @@
             localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
         });
         
-        // Load saved theme
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light') {
             isDarkMode = false;
             document.body.className = 'light-mode';
             document.getElementById('themeToggle').textContent = '☀️';
         }
-        
-        // ============================================================
-        // NAVBAR SCROLL EFFECT
-        // ============================================================
-        window.addEventListener('scroll', function() {
-            const navbar = document.getElementById('navbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
-        
-        // ============================================================
-        // NAVBAR ACTIVE LINK
-        // ============================================================
-        const sections = document.querySelectorAll('.section');
-        const navLinks = document.querySelectorAll('.nav-links a');
-        
-        window.addEventListener('scroll', function() {
-            let current = '';
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                if (window.scrollY >= sectionTop - 150) {
-                    current = section.getAttribute('id');
-                }
-            });
-            
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === `#${current}`) {
-                    link.classList.add('active');
-                }
-            });
-        });
         
         // ============================================================
         // LOAD PRODUCTS
@@ -1044,7 +925,7 @@
                 const products = await apiCall('/api/products');
                 renderProducts(products);
             } catch (error) {
-                showToast('Error loading products', 'error');
+                showToast('خطأ في تحميل المنتجات', 'error');
             }
         }
         
@@ -1067,7 +948,6 @@
                 menuGrid.appendChild(card);
             });
             
-            // Add to cart event listeners
             document.querySelectorAll('.btn-add-cart').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const id = this.dataset.id;
@@ -1150,7 +1030,6 @@
                 return;
             }
             
-            // Store cart in sessionStorage for payment page
             sessionStorage.setItem('checkoutCart', JSON.stringify(cart));
             window.location.href = '/pay.html';
         });
@@ -1163,19 +1042,17 @@
                 const data = await apiCall('/api/feedback');
                 renderFeedback(data.feedbacks, data.averageRating, data.totalReviews);
             } catch (error) {
-                showToast('Error loading feedback', 'error');
+                showToast('خطأ في تحميل التقييمات', 'error');
             }
         }
         
         function renderFeedback(feedbacks, avgRating, totalReviews) {
-            // Update average rating
             averageRatingEl.innerHTML = `
                 <div class="number">${avgRating.toFixed(1)}</div>
                 <div class="stars">${'⭐'.repeat(Math.round(avgRating))}</div>
                 <div style="color: #a0a0a0;">${totalReviews} تقييم</div>
             `;
             
-            // Render feedback list
             feedbackList.innerHTML = '';
             feedbacks.forEach(f => {
                 const item = document.createElement('div');
@@ -1215,7 +1092,7 @@
                 document.getElementById('feedbackComment').value = '';
                 loadFeedback();
             } catch (error) {
-                showToast('Error submitting feedback', 'error');
+                showToast('خطأ في إرسال التقييم', 'error');
             }
         });
         
@@ -1224,7 +1101,7 @@
         // ============================================================
         async function loadWifiInfo() {
             try {
-                const response = await fetch('/api/wifi-info');
+                const response = await fetch(`${API_URL}/api/wifi-info`);
                 const data = await response.json();
                 document.getElementById('wifiSSID').textContent = data.ssid || 'غير متاح';
                 document.getElementById('wifiSecurity').textContent = data.security || 'غير متاح';
@@ -1262,7 +1139,9 @@
                     document.getElementById('internetCode').value = '';
                     document.getElementById('phoneNumber').value = '';
                     
-                    // Show WiFi credentials
+                    // تخزين في sessionStorage عشان الدفع
+                    sessionStorage.setItem('hasInternet', 'true');
+                    
                     showToast(`📶 الشبكة: ${result.wifiSSID}\n🔑 كلمة المرور: ${result.wifiPassword}`, 'info');
                 }
             } catch (error) {
@@ -1274,7 +1153,6 @@
         // INITIALIZE
         // ============================================================
         async function init() {
-            // Show loader
             loader.classList.remove('hidden');
             
             try {
@@ -1287,12 +1165,10 @@
                 console.error('Init error:', error);
             }
             
-            // Hide loader
             setTimeout(() => {
                 loader.classList.add('hidden');
             }, 500);
             
-            // Render initial cart
             renderCart();
         }
         
